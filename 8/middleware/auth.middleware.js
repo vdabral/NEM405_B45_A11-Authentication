@@ -2,23 +2,21 @@ const jwt = require("jsonwebtoken");
 
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res
-      .status(401)
-      .json({ message: "Unauthorized: Missing or invalid token format" });
+  if (!authHeader) {
+    return res.status(401).json({ message: "Authorization header missing" });
   }
 
-  const token = authHeader.split(" ")[1];
+  const token = authHeader.split(" ")[1]; // Expect: Bearer <token>
+  if (!token) {
+    return res.status(401).json({ message: "Token missing" });
+  }
 
   try {
     const decoded = jwt.verify(token, "privateKey");
-    req.user = decoded;
+    req.user = decoded; // contains userId, etc.
     next();
   } catch (err) {
-    return res
-      .status(403)
-      .json({ message: "Forbidden: Invalid or expired token" });
+    return res.status(401).json({ message: "Invalid token" });
   }
 };
 
